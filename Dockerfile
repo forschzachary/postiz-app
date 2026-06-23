@@ -28,14 +28,9 @@ COPY . /app
 RUN pnpm install
 RUN NODE_OPTIONS="--max-old-space-size=4096" pnpm run build
 
-# ---- Nginx: template with $PORT support + health endpoint ----
-RUN cp var/docker/nginx.conf /etc/nginx/nginx.conf.template \
-    && sed -i 's/listen 5000;/listen ${PORT:-5000};/' /etc/nginx/nginx.conf.template \
-    && sed -i '/server {/a\        location /health { access_log off; return 200 "ok\\n"; add_header Content-Type text/plain; }' /etc/nginx/nginx.conf.template
+# ---- Nginx config (stock listens on 5000, matches Railway PORT) ----
+COPY var/docker/nginx.conf /etc/nginx/nginx.conf
 
-# ---- Entrypoint: envsubst nginx template, start nginx + pm2 ----
-RUN printf '#!/bin/sh\nset -e\nexport PORT=${PORT:-5000}\nenvsubst < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf\nnginx -g "daemon off;" &\npnpm run pm2\n' > /usr/local/bin/start.sh \
-    && chmod +x /usr/local/bin/start.sh
-
+# ---- Runtime: nginx + pm2 (matching official image behavior) ----
 EXPOSE 5000
-CMD ["/usr/local/bin/start.sh"]
+CMD ["sh", "-c", "nginx && pnpm run pm2"]
