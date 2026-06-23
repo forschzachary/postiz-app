@@ -34,7 +34,7 @@ RUN cp var/docker/nginx.conf /etc/nginx/nginx.conf.template \
     && sed -i '/server {/a\        location /health { access_log off; return 200 "ok\\n"; add_header Content-Type text/plain; }' /etc/nginx/nginx.conf.template
 
 # ---- Entrypoint: envsubst nginx template, start nginx + pm2 ----
-RUN printf '#!/bin/sh\nenvsubst "$PORT" < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf\nexec nginx && exec pnpm run pm2\n' > /usr/local/bin/start.sh \
+RUN printf '#!/bin/sh\nset -e\nexport PORT=${PORT:-5000}\nenvsubst < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf\nnginx -g "daemon off;" &\npnpm run pm2\n' > /usr/local/bin/start.sh \
     && chmod +x /usr/local/bin/start.sh
 
 EXPOSE 5000
