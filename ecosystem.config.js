@@ -2,12 +2,9 @@ module.exports = {
   apps: [
     {
       name: 'backend',
-      script: 'pnpm',
-      args: 'start',
-      cwd: './apps/backend',
-      env: {
-        PORT: 3000,
-      },
+      script: 'sh',
+      args: 'start-backend.sh',
+      cwd: '/app',
     },
     {
       name: 'frontend',
