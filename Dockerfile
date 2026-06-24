@@ -31,6 +31,8 @@ RUN NODE_OPTIONS="--max-old-space-size=4096" pnpm run build
 # ---- Nginx config (stock listens on 5000, matches Railway PORT) ----
 COPY var/docker/nginx.conf /etc/nginx/nginx.conf
 
-# ---- Runtime: nginx + pm2 (matching official image behavior) ----
+# ---- Runtime: nginx + pm2 ----
+# PORT=5000 is Railway's external port; nginx listens there.
+# Backend needs PORT=3000 (set in ecosystem.config.js) to avoid clash.
 EXPOSE 5000
-CMD ["sh", "-c", "nginx && pnpm run pm2"]
+CMD ["sh", "-c", "pnpm run prisma-db-push && nginx && pm2 start ecosystem.config.js && pm2 logs"]
